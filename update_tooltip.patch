@@ -1,0 +1,29 @@
+--- src/components/CalendarScreen.tsx
++++ src/components/CalendarScreen.tsx
+@@ -233,14 +233,14 @@
+                       </span>
+                       {tooltipJobs.slice(0, 3).map(job => (
+-                        <div key={job.id} className="p-2 bg-brand-surface-low rounded-xl border border-slate-50 flex items-center justify-between text-left">
++                        <button key={job.id} onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }} className="w-full p-2 bg-brand-surface-low hover:bg-slate-50 active:bg-slate-100 transition-colors rounded-xl border border-slate-50 flex items-center justify-between text-left cursor-pointer">
+                           <div className="flex-1 truncate mr-2">
+                             <p className="text-[11px] font-bold text-brand-text truncate">{job.title}</p>
+                             <div className="flex items-center gap-1.5 mt-0.5">
+                               <p className="text-[9px] text-brand-text-variant font-medium truncate">{job.company}</p>
+                               {job.periodText && (
+                                 <>
+                                   <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span>
+                                   <p className="text-[8px] text-slate-500 flex items-center gap-0.5 shrink-0 font-medium">
+                                     <Calendar size={8} className="text-slate-400" />
+                                     {job.periodText.split(' ')[0]}
+                                   </p>
+                                 </>
+                               )}
+                             </div>
+                           </div>
+                           <span className="shrink-0 bg-white shadow-xs rounded-full p-1 border border-slate-100 text-[9px] font-bold text-slate-500 px-2.5">
+                             {job.salary}
+                           </span>
+-                        </div>
++                        </button>
+                       ))}
+                       {tooltipJobs.length > 3 && (

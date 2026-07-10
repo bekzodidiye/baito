@@ -1,0 +1,60 @@
+--- src/components/CalendarScreen.tsx
++++ src/components/CalendarScreen.tsx
+@@ -25,12 +25,37 @@
+   const nextMonthDays = [1, 2, 3, 4, 5];
+ 
++  // Helper: check if a job falls on a given day in June 2026
++  const isJobOnDay = (job: Job, day: number): boolean => {
++    if (!job.periodText) return false;
++    const datePart = job.periodText.split(' ')[0];
++    if (!datePart.startsWith('2026-06-')) return false;
++
++    if (datePart.includes('~')) {
++      const [start, end] = datePart.split('~');
++      const startDay = parseInt(start.split('-')[2], 10);
++      const endDay = parseInt(end, 10);
++      return day >= startDay && day <= endDay;
++    } else {
++      const jobDay = parseInt(datePart.split('-')[2], 10);
++      return jobDay === day;
++    }
++  };
++
+   // Map days to specific statuses as requested by the user
+   const getDayStatus = (day: number): 'applied' | 'confirmed' | 'todo' | 'completed' | null => {
+-    if (day === 5 || day === 8) return 'applied';     // Applied / Yellow
+-    if (day === 12 && jobs.some(j => j.applied || j.status === 'applied')) return 'applied'; // Today turns yellow when applied
+-    if (day === 15) return 'confirmed';               // Confirmed / Green
+-    if (day === 17 || day === 24) return 'todo';       // Todo (Starts later) / Red
+-    if (day === 20 || day === 22) return 'completed';  // Completed / Star ⭐
++    const jobsOnDay = jobs.filter(j => isJobOnDay(j, day));
++    if (jobsOnDay.some(j => j.status === 'completed')) return 'completed';
++    if (jobsOnDay.some(j => j.status === 'todo')) return 'todo';
++    if (jobsOnDay.some(j => j.status === 'confirmed')) return 'confirmed';
++    if (jobsOnDay.some(j => j.status === 'applied' || j.applied)) return 'applied';
+     return null;
+   };
+ 
+@@ -165,11 +190,11 @@
+ 
+             if (status === 'applied') {
+-              tooltipJobs = appliedJobs;
++              tooltipJobs = appliedJobs.filter(j => isJobOnDay(j, day));
+               tooltipTitle = 'Arizadagi ishlar';
+               tooltipColor = 'text-amber-600';
+             } else if (status === 'confirmed') {
+-              tooltipJobs = confirmedJobs;
++              tooltipJobs = confirmedJobs.filter(j => isJobOnDay(j, day));
+               tooltipTitle = 'Tasdiqlangan ishlar';
+               tooltipColor = 'text-emerald-600';
+             } else if (status === 'todo') {
+-              tooltipJobs = todoJobs;
++              tooltipJobs = todoJobs.filter(j => isJobOnDay(j, day));
+               tooltipTitle = 'Qilinadigan ishlar';
+               tooltipColor = 'text-rose-600';
+             } else if (status === 'completed') {
+-              tooltipJobs = completedJobs;
++              tooltipJobs = completedJobs.filter(j => isJobOnDay(j, day));
+               tooltipTitle = 'Tugallangan ishlar';
+               tooltipColor = 'text-brand-primary';
+             }

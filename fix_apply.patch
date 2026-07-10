@@ -1,0 +1,71 @@
+--- src/context/AppContext.tsx
++++ src/context/AppContext.tsx
+@@ -140,25 +140,36 @@
++  // Helper: check if a job falls on a given day in June 2026
++  const isJobOnDay = (job: Job, day: number): boolean => {
++    if (!job.periodText) return false;
++    const datePart = job.periodText.split(' ')[0];
++    if (!datePart.startsWith('2026-06-')) return false;
++
++    if (datePart.includes('~')) {
++      const [start, end] = datePart.split('~');
++      const startDay = parseInt(start.split('-')[2], 10);
++      const endDay = parseInt(end, 10);
++      return day >= startDay && day <= endDay;
++    } else {
++      const jobDay = parseInt(datePart.split('-')[2], 10);
++      return jobDay === day;
++    }
++  };
++
+   const applyToJob = (jobId: string) => {
+     const jobToApply = jobs.find(j => j.id === jobId);
+     if (!jobToApply) return false;
+ 
+-    // Kun bo'yicha hisoblash
+-    const jobDate = jobToApply.periodText?.split(' ')[0] || '';
+-    const jobsOnDate = jobs.filter(j => j.periodText?.split(' ')[0] === jobDate);
+-    
+-    const appliedJobsCount = jobsOnDate.filter(j => j.applied || j.status === 'applied').length;
+-    const activeJobsCount = jobsOnDate.filter(j => ['confirmed', 'todo', 'completed'].includes(j.status)).length;
+-    
+-    if (activeJobsCount >= 1) {
+-      setToastMessage(`Sizda ${jobDate} kuni allaqachon tasdiqlangan ish bor.`);
+-      setTimeout(() => setToastMessage(null), 3000);
+-      return false;
+-    }
+-
+-    if (appliedJobsCount >= 2) {
+-      setToastMessage(`Siz ${jobDate} kuni uchun ko'pi bilan 2 ta ishga ariza bera olasiz.`);
+-      setTimeout(() => setToastMessage(null), 3000);
+-      return false;
++    const datePart = jobToApply.periodText?.split(' ')[0] || '';
++    let startDay = 0, endDay = 0;
++    if (datePart.includes('~')) {
++      const [start, end] = datePart.split('~');
++      startDay = parseInt(start.split('-')[2], 10);
++      endDay = parseInt(end, 10);
++    } else if (datePart.startsWith('2026-06-')) {
++      startDay = endDay = parseInt(datePart.split('-')[2], 10);
++    }
++
++    if (startDay > 0) {
++      for (let day = startDay; day <= endDay; day++) {
++        const jobsOnDay = jobs.filter(j => isJobOnDay(j, day));
++        const appliedCount = jobsOnDay.filter(j => j.applied || j.status === 'applied').length;
++        const activeCount = jobsOnDay.filter(j => ['confirmed', 'todo', 'completed'].includes(j.status)).length;
++        
++        if (activeCount >= 1) {
++          setToastMessage(`Sizda 2026-06-${day.toString().padStart(2, '0')} kuni allaqachon tasdiqlangan ish bor.`);
++          setTimeout(() => setToastMessage(null), 3000);
++          return false;
++        }
++        if (appliedCount >= 2) {
++          setToastMessage(`Siz 2026-06-${day.toString().padStart(2, '0')} kuni uchun ko'pi bilan 2 ta ishga ariza bera olasiz.`);
++          setTimeout(() => setToastMessage(null), 3000);
++          return false;
++        }
++      }
+     }
+ 
+     // Apply status and calendar event update

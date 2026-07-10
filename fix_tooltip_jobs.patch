@@ -1,0 +1,30 @@
+--- src/components/CalendarScreen.tsx
++++ src/components/CalendarScreen.tsx
+@@ -183,23 +183,18 @@
+             }
+ 
+-            let tooltipJobs: Job[] = [];
+-            let tooltipTitle = '';
+-            let tooltipColor = '';
++            const jobsOnThisDay = jobs.filter(j => isJobOnDay(j, day) && (j.status !== 'none' || j.applied));
++            let tooltipJobs: Job[] = jobsOnThisDay;
++            let tooltipTitle = `${day}-Iyun kungi ishlar`;
++            let tooltipColor = 'text-slate-700';
+             
+             if (status === 'applied') {
+-              tooltipJobs = appliedJobs.filter(j => isJobOnDay(j, day));
+-              tooltipTitle = 'Arizadagi ishlar';
+               tooltipColor = 'text-amber-600';
+             } else if (status === 'confirmed') {
+-              tooltipJobs = confirmedJobs.filter(j => isJobOnDay(j, day));
+-              tooltipTitle = 'Tasdiqlangan ishlar';
+               tooltipColor = 'text-emerald-600';
+             } else if (status === 'todo') {
+-              tooltipJobs = todoJobs.filter(j => isJobOnDay(j, day));
+-              tooltipTitle = 'Qilinadigan ishlar';
+               tooltipColor = 'text-rose-600';
+             } else if (status === 'completed') {
+-              tooltipJobs = completedJobs.filter(j => isJobOnDay(j, day));
+-              tooltipTitle = 'Tugallangan ishlar';
+               tooltipColor = 'text-brand-primary';
+             }
