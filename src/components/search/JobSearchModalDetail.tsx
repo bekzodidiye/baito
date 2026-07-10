@@ -222,7 +222,7 @@ export const JobSearchModalDetail: React.FC<JobSearchModalDetailProps> = ({
   toggleBookmark,
   applyToJob,
 }) => {
-  const { setCurrentScreen, setMapFocusedJobId } = useApp();
+  const { setCurrentScreen, setMapFocusedJobId, setToastMessage } = useApp();
   const jobDetails = getJobDetails(selectedJob.title);
 
   const handleApplyClick = () => {
@@ -489,7 +489,7 @@ export const JobSearchModalDetail: React.FC<JobSearchModalDetailProps> = ({
                   Muvaffaqiyatli yakunlandi
                 </button>
               );
-            } else if (selectedJob.status === 'confirmed') {
+            } else if (selectedJob.status === 'confirmed' || selectedJob.status === 'todo') {
               if (isFuture) {
                 return (
                   <button
@@ -504,25 +504,20 @@ export const JobSearchModalDetail: React.FC<JobSearchModalDetailProps> = ({
                 return (
                   <button
                     onClick={() => {
-                      alert("Ish boshlandi!");
+                      if (setToastMessage) {
+                        setToastMessage("Ish muvaffaqiyatli boshlandi! Omad tilaymiz. 🚀");
+                        setTimeout(() => setToastMessage(null), 3000);
+                      } else {
+                        alert("Ish boshlandi!");
+                      }
                     }}
-                    className="flex-1 text-white h-14 rounded-xl text-sm font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                    className="flex-1 text-white h-14 rounded-xl text-sm font-bold shadow-md bg-rose-500 hover:bg-rose-600 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
                     <PlayCircle size={15} />
                     Ishni boshlash
                   </button>
                 );
               }
-            } else if (selectedJob.status === 'todo') {
-              return (
-                <button
-                  disabled
-                  className="flex-1 text-white h-14 rounded-xl text-sm font-bold shadow-md bg-rose-500 opacity-90 cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  <Clock size={15} />
-                  Boshlanishi kutilmoqda
-                </button>
-              );
             } else if (selectedJob.status === 'applied' || selectedJob.applied) {
               return (
                 <button

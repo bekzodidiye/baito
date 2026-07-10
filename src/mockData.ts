@@ -58,7 +58,7 @@ export const initialJobs: Job[] = [
     description: 'Sergeli yuk stansiyasida vagondan 50 kg lik sement qoplarini omborga tushirish kerak. Jismoniy baquvvat, ishchan yigitlar qidirilmoqda. Tushlik va kechki ovqat bepul tashkil etiladi.',
     hourlyRate: "45 000",
     transportRate: "20 000",
-    periodText: "2026-06-17 09:00~19:00",
+    periodText: "2026-06-10 09:00~19:00",
     durationLabel: "1 kunlik"
   },
   {

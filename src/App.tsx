@@ -9,12 +9,14 @@ import { CalendarScreen } from './components/CalendarScreen';
 import { MessagesScreen } from './components/MessagesScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { RegionSelector } from './components/RegionSelector';
+import { MenuModals } from './components/MenuModals';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle } from 'lucide-react';
 
 function AppContent() {
   const { currentScreen, toastMessage } = useApp();
   const [hasOpenedMap, setHasOpenedMap] = useState(false);
+  const [activeModal, setActiveModal] = useState<'profile' | 'settings' | 'help' | null>(null);
 
   useEffect(() => {
     if (currentScreen === 'xarita') {
@@ -57,7 +59,7 @@ function AppContent() {
       <Header />
 
       {/* Sidebar Drawer Menu for Mobile view */}
-      <Drawer />
+      <Drawer onOpenModal={(type) => setActiveModal(type)} />
 
       {/* Main Content Layout */}
       <main className={`flex-1 w-full ${currentScreen === 'xarita' ? 'max-w-none px-0 md:px-0' : 'max-w-7xl mx-auto px-4 md:px-6'}`}>
@@ -76,6 +78,9 @@ function AppContent() {
 
       {/* Region selector full screen overlay */}
       <RegionSelector />
+
+      {/* Menu item modal views */}
+      <MenuModals isOpen={activeModal !== null} onClose={() => setActiveModal(null)} type={activeModal} />
     </div>
   );
 }

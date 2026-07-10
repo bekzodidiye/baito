@@ -44,11 +44,29 @@ export const CalendarScreen: React.FC = () => {
     return datePart.startsWith(prefix);
   };
 
+  // Helper: check if a job date is in the future relative to today (June 10, 2026)
+  const isJobFutureDay = (job: Job): boolean => {
+    if (!job.periodText) return false;
+    const dateStr = job.periodText.split(' ')[0];
+    const dayStr = dateStr.includes('~') ? dateStr.split('~')[0].split('-')[2] : dateStr.split('-')[2];
+    const jobDay = parseInt(dayStr) || 10;
+    
+    const parts = dateStr.split('-');
+    const year = parseInt(parts[0]) || 2026;
+    const month = parseInt(parts[1]) || 6;
+    
+    if (year > 2026) return true;
+    if (year < 2026) return false;
+    if (month > 6) return true;
+    if (month < 6) return false;
+    return jobDay > 10; // today is June 10, 2026
+  };
+
   // Filter jobs by their status categories for the calendar list (filtered by selected month)
   const currentMonthJobs = jobs.filter(j => isJobInMonth(j, currentYear, currentMonth));
   const appliedJobs = currentMonthJobs.filter(j => j.applied || j.status === 'applied');
-  const confirmedJobs = currentMonthJobs.filter(j => j.status === 'confirmed');
-  const todoJobs = currentMonthJobs.filter(j => j.status === 'todo');
+  const confirmedJobs = currentMonthJobs.filter(j => (j.status === 'confirmed' || j.status === 'todo') && isJobFutureDay(j));
+  const todoJobs = currentMonthJobs.filter(j => (j.status === 'confirmed' || j.status === 'todo') && !isJobFutureDay(j));
   const completedJobs = currentMonthJobs.filter(j => j.status === 'completed');
 
   const renderJobCard = (job: Job, badge: React.ReactNode) => (
@@ -115,8 +133,16 @@ export const CalendarScreen: React.FC = () => {
   const getDayStatus = (day: number): 'applied' | 'confirmed' | 'todo' | 'completed' | null => {
     const jobsOnDay = jobs.filter(j => isJobOnDay(j, day, currentYear, currentMonth));
     if (jobsOnDay.some(j => j.status === 'completed')) return 'completed';
-    if (jobsOnDay.some(j => j.status === 'todo')) return 'todo';
-    if (jobsOnDay.some(j => j.status === 'confirmed')) return 'confirmed';
+    
+    const activeJobsOnDay = jobsOnDay.filter(j => j.status === 'confirmed' || j.status === 'todo');
+    if (activeJobsOnDay.length > 0) {
+      // If the date is in the future relative to today (June 10, 2026)
+      const isFuture = (currentYear > 2026) || 
+                       (currentYear === 2026 && currentMonth > 5) || 
+                       (currentYear === 2026 && currentMonth === 5 && day > 10);
+      return isFuture ? 'confirmed' : 'todo';
+    }
+    
     if (jobsOnDay.some(j => j.status === 'applied' || j.applied)) return 'applied';
     return null;
   };
@@ -367,7 +393,7 @@ export const CalendarScreen: React.FC = () => {
                             </div>
                             {status === 'applied' && <span className="bg-amber-100 text-amber-800 border border-amber-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yuborildi</span>}
                             {status === 'confirmed' && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Tasdiqlandi</span>}
-                            {status === 'todo' && <span className="bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Kutilmoqda</span>}
+                            {status === 'todo' && <span className="bg-rose-100 text-rose-850 border border-rose-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Bugun qilinadi</span>}
                             {status === 'completed' && <span className="bg-indigo-50 text-brand-primary border border-indigo-100 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yakunlandi</span>}
                           </button>
                         ))}
@@ -548,9 +574,9 @@ export const CalendarScreen: React.FC = () => {
                     <p className="text-xs text-brand-text-variant italic">Hisobotlar mavjud emas.</p>
                   ) : (
                     todoJobs.map(job => renderJobCard(job, 
-                      <span className="shrink-0 bg-red-100 text-red-800 border border-red-200 font-bold text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="shrink-0 bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                         <AlertCircle size={10} />
-                        Kutilmoqda
+                        Boshlashga tayyor
                       </span>
                     ))
                   )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Menu, Map, LayoutList, Calendar, Mail, Search, Bell, User, Briefcase, ChevronDown } from 'lucide-react';
+import { Logo } from './Logo';
 
 export const Header: React.FC = () => {
   const { currentScreen, setCurrentScreen, setDrawerOpen, unreadNotificationsCount, setShowRegionSelector, messagesSearchOpen, setMessagesSearchOpen } = useApp();
@@ -93,10 +94,9 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-8">
           <div
             onClick={() => setCurrentScreen('xarita')}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="cursor-pointer group"
           >
-            <Briefcase size={26} className="text-brand-primary group-hover:scale-110 transition-transform fill-brand-primary/10" />
-            <span className="font-display text-xl font-bold text-brand-primary tracking-tight">Baito</span>
+            <Logo sizeClassName="text-[20px]" className="group-hover:scale-105 transition-transform origin-left duration-200" />
           </div>
 
           <nav className="flex gap-2">

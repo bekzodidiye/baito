@@ -1,15 +1,26 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Calendar, Map, Mail, Briefcase } from 'lucide-react';
+import { X, User, ClipboardList, Settings, HelpCircle } from 'lucide-react';
+import { Logo } from './Logo';
 
-export const Drawer: React.FC = () => {
-  const { drawerOpen, setDrawerOpen, currentScreen, setCurrentScreen } = useApp();
+interface DrawerProps {
+  onOpenModal: (type: 'profile' | 'settings' | 'help') => void;
+}
+
+export const Drawer: React.FC<DrawerProps> = ({ onOpenModal }) => {
+  const { drawerOpen, setDrawerOpen, currentScreen, setCurrentScreen, setActiveCalendarFilter } = useApp();
 
   if (!drawerOpen) return null;
 
-  const navigateTo = (screen: 'kalendar' | 'qidiruv' | 'xabarlar' | 'xarita') => {
-    setCurrentScreen(screen);
+  const handleMeningArizalarim = () => {
+    setCurrentScreen('kalendar');
+    setActiveCalendarFilter('applied');
     setDrawerOpen(false);
+  };
+
+  const handleModalOpen = (type: 'profile' | 'settings' | 'help') => {
+    setDrawerOpen(false);
+    onOpenModal(type);
   };
 
   return (
@@ -23,10 +34,7 @@ export const Drawer: React.FC = () => {
       {/* Drawer content */}
       <nav className="relative w-64 h-full bg-white p-5 flex flex-col gap-6 shadow-2xl transition-transform duration-300">
         <div className="flex items-center justify-between border-b border-brand-outline-variant pb-4">
-          <div className="flex items-center gap-2 text-brand-primary">
-            <Briefcase size={22} className="fill-brand-primary/10" />
-            <span className="font-display text-lg font-bold">Baito</span>
-          </div>
+          <Logo sizeClassName="text-[18px]" />
           <button
             onClick={() => setDrawerOpen(false)}
             className="p-1 rounded-full hover:bg-brand-surface-low text-brand-text-variant hover:text-brand-text cursor-pointer"
@@ -36,40 +44,44 @@ export const Drawer: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-2">
+          {/* 1. Profil */}
           <button
-            onClick={() => navigateTo('kalendar')}
+            onClick={() => handleModalOpen('profile')}
+            className="flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text"
+          >
+            <User size={18} className="text-slate-500" />
+            <span>Profil</span>
+          </button>
+
+          {/* 2. Mening arizalarim */}
+          <button
+            onClick={handleMeningArizalarim}
             className={`flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer ${
               currentScreen === 'kalendar'
                 ? 'bg-brand-surface-low text-brand-primary font-bold'
                 : 'text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text'
             }`}
           >
-            <Calendar size={18} />
-            <span>Kalendar</span>
+            <ClipboardList size={18} />
+            <span>Mening arizalarim</span>
           </button>
 
+          {/* 3. Sozlamalar */}
           <button
-            onClick={() => navigateTo('xarita')}
-            className={`flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer ${
-              currentScreen === 'qidiruv' || currentScreen === 'xarita'
-                ? 'bg-brand-surface-low text-brand-primary font-bold'
-                : 'text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text'
-            }`}
+            onClick={() => handleModalOpen('settings')}
+            className="flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text"
           >
-            <Map size={18} />
-            <span>Ish qidirish</span>
+            <Settings size={18} className="text-slate-500" />
+            <span>Sozlamalar</span>
           </button>
 
+          {/* 4. Yordam */}
           <button
-            onClick={() => navigateTo('xabarlar')}
-            className={`flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer ${
-              currentScreen === 'xabarlar' || currentScreen === 'chat'
-                ? 'bg-brand-surface-low text-brand-primary font-bold'
-                : 'text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text'
-            }`}
+            onClick={() => handleModalOpen('help')}
+            className="flex items-center gap-4 p-3 rounded-xl font-medium text-sm text-left transition-colors cursor-pointer text-brand-text-variant hover:bg-brand-surface-low hover:text-brand-text"
           >
-            <Mail size={18} />
-            <span>Xabarlar</span>
+            <HelpCircle size={18} className="text-slate-500" />
+            <span>Yordam</span>
           </button>
         </div>
 

@@ -65,7 +65,7 @@ const safeSetItem = (key: string, value: string): void => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('xarita');
   const [jobs, setJobs] = useState<Job[]>(() => {
-    const cached = safeGetItem('projob_jobs_v6');
+    const cached = safeGetItem('projob_jobs_v7');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -77,7 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Error parsing jobs cache:', e);
       }
     }
-    safeSetItem('projob_jobs_v6', JSON.stringify(initialJobs));
+    safeSetItem('projob_jobs_v7', JSON.stringify(initialJobs));
     return initialJobs;
   });
   const [chats, setChats] = useState<Chat[]>(() => {
@@ -123,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeCalendarDay, setActiveCalendarDay] = useState('2026-06-10'); // Mocking June 10, 2026 as active/today
 
   useEffect(() => {
-    safeSetItem('projob_jobs_v6', JSON.stringify(jobs));
+    safeSetItem('projob_jobs_v7', JSON.stringify(jobs));
   }, [jobs]);
 
   useEffect(() => {
