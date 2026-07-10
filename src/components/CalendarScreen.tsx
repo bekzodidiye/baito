@@ -17,6 +17,23 @@ export const CalendarScreen: React.FC = () => {
   const [currentYear, setCurrentYear] = useState<number>(2026);
   const [currentMonth, setCurrentMonth] = useState<number>(5); // June is 5 (0-indexed)
   const [selectedDay, setSelectedDay] = useState<number>(10); // Default is June 10, 2026 (Wednesday)
+  const [activeTooltipDay, setActiveTooltipDay] = useState<number | null>(null);
+  const calendarRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setActiveTooltipDay(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
 
   // Helper: check if a job belongs to the current year & month
   const isJobInMonth = (job: Job, year: number, month: number): boolean => {
@@ -107,6 +124,13 @@ export const CalendarScreen: React.FC = () => {
   const handleDayClick = (day: number) => {
     setSelectedDay(day);
     const status = getDayStatus(day);
+    
+    if (status) {
+      setActiveTooltipDay(prev => prev === day ? null : day);
+    } else {
+      setActiveTooltipDay(null);
+    }
+
     if (status === 'applied') {
       setActiveAccordion('arizalar');
     } else if (status === 'confirmed') {
@@ -119,6 +143,7 @@ export const CalendarScreen: React.FC = () => {
   };
 
   const handlePrevMonth = () => {
+    setActiveTooltipDay(null);
     if (currentMonth === 0) {
       setCurrentMonth(11);
       setCurrentYear(prev => prev - 1);
@@ -129,6 +154,7 @@ export const CalendarScreen: React.FC = () => {
   };
 
   const handleNextMonth = () => {
+    setActiveTooltipDay(null);
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(prev => prev + 1);
@@ -175,7 +201,7 @@ export const CalendarScreen: React.FC = () => {
         </defs>
       </svg>
       {/* Calendar Section */}
-      <section className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04),_0_1px_2px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] transition-all duration-300 animate-fadeIn">
+      <section ref={calendarRef} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04),_0_1px_2px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] transition-all duration-300 animate-fadeIn">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-display text-lg font-bold text-slate-800">{currentYear}-yil {UZBEK_MONTHS[currentMonth]}</h2>
           <div className="flex gap-1">
@@ -305,50 +331,58 @@ export const CalendarScreen: React.FC = () => {
                   )}
                 </motion.button>
                 
-                {status && tooltipJobs.length > 0 && (
-                  <div className={`absolute hidden group-hover:flex z-50 ${
-                    isFirstTwoRows ? 'top-full pt-1 flex-col-reverse' : 'bottom-full pb-1 flex-col'
-                  } ${
-                    colIndex <= 1 ? 'left-0 items-start' : colIndex >= 5 ? 'right-0 items-end' : 'left-1/2 -translate-x-1/2 items-center'
-                  }`}>
-                    <div className="bg-white p-2.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 w-[220px] max-h-56 overflow-hidden flex flex-col gap-1.5">
-                      <span className={`font-bold border-b border-slate-100 pb-1.5 mb-0.5 uppercase tracking-wider text-[10px] ${tooltipColor}`}>
-                        {tooltipTitle}
-                      </span>
-                      {tooltipJobs.slice(0, 3).map(job => (
-                        <button key={job.id} onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }} className="w-full p-2 bg-brand-surface-low hover:bg-slate-50 active:bg-slate-100 transition-colors rounded-xl border border-slate-50 flex items-center justify-between text-left cursor-pointer">
-                          <div className="flex-1 truncate mr-2">
-                            <p className="text-[11px] font-bold text-brand-text truncate">{job.title}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <p className="text-[9px] text-brand-text-variant font-medium truncate">{job.company}</p>
-                              {job.periodText && (
-                                <>
-                                  <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span>
-                                  <p className="text-[8px] text-slate-500 flex items-center gap-0.5 shrink-0 font-medium">
-                                    <Calendar size={8} className="text-slate-400" />
-                                    {job.periodText.split(' ')[0]}
-                                  </p>
-                                </>
-                              )}
+                <AnimatePresence>
+                  {status && tooltipJobs.length > 0 && activeTooltipDay === day && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: isFirstTwoRows ? 5 : -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: isFirstTwoRows ? 5 : -5 }}
+                      transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                      className={`absolute flex z-50 ${
+                        isFirstTwoRows ? 'top-full pt-1 flex-col-reverse' : 'bottom-full pb-1 flex-col'
+                      } ${
+                        colIndex <= 1 ? 'left-0 items-start' : colIndex >= 5 ? 'right-0 items-end' : 'left-1/2 -translate-x-1/2 items-center'
+                      }`}
+                    >
+                      <div className="bg-white p-2.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 w-[220px] max-h-56 overflow-hidden flex flex-col gap-1.5">
+                        <span className={`font-bold border-b border-slate-100 pb-1.5 mb-0.5 uppercase tracking-wider text-[10px] ${tooltipColor}`}>
+                          {tooltipTitle}
+                        </span>
+                        {tooltipJobs.slice(0, 3).map(job => (
+                          <button key={job.id} onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }} className="w-full p-2 bg-brand-surface-low hover:bg-slate-50 active:bg-slate-100 transition-colors rounded-xl border border-slate-50 flex items-center justify-between text-left cursor-pointer">
+                            <div className="flex-1 truncate mr-2">
+                              <p className="text-[11px] font-bold text-brand-text truncate">{job.title}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <p className="text-[9px] text-brand-text-variant font-medium truncate">{job.company}</p>
+                                {job.periodText && (
+                                  <>
+                                    <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0"></span>
+                                    <p className="text-[8px] text-slate-500 flex items-center gap-0.5 shrink-0 font-medium">
+                                      <Calendar size={8} className="text-slate-400" />
+                                      {job.periodText.split(' ')[0]}
+                                    </p>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          {status === 'applied' && <span className="bg-amber-100 text-amber-800 border border-amber-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yuborildi</span>}
-                          {status === 'confirmed' && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Tasdiqlandi</span>}
-                          {status === 'todo' && <span className="bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Kutilmoqda</span>}
-                          {status === 'completed' && <span className="bg-indigo-50 text-brand-primary border border-indigo-100 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yakunlandi</span>}
-                        </button>
-                      ))}
-                      {tooltipJobs.length > 3 && (
-                        <div className="text-slate-400 font-medium italic mt-1 text-[10px] text-center">+{tooltipJobs.length - 3} ta yana...</div>
-                      )}
-                    </div>
-                    <div className={`w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent ${
-                      isFirstTwoRows ? 'border-b-[6px] border-b-white relative -bottom-[1px]' : 'border-t-[6px] border-t-white relative -top-[1px]'
-                    } ${
-                      colIndex <= 1 ? 'ml-[16px]' : colIndex >= 5 ? 'mr-[16px]' : ''
-                    }`}></div>
-                  </div>
-                )}
+                            {status === 'applied' && <span className="bg-amber-100 text-amber-800 border border-amber-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yuborildi</span>}
+                            {status === 'confirmed' && <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Tasdiqlandi</span>}
+                            {status === 'todo' && <span className="bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Kutilmoqda</span>}
+                            {status === 'completed' && <span className="bg-indigo-50 text-brand-primary border border-indigo-100 font-bold text-[8px] px-1.5 py-0.5 rounded-full shrink-0 shadow-xs">Yakunlandi</span>}
+                          </button>
+                        ))}
+                        {tooltipJobs.length > 3 && (
+                          <div className="text-slate-400 font-medium italic mt-1 text-[10px] text-center">+{tooltipJobs.length - 3} ta yana...</div>
+                        )}
+                      </div>
+                      <div className={`w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent ${
+                        isFirstTwoRows ? 'border-b-[6px] border-b-white relative -bottom-[1px]' : 'border-t-[6px] border-t-white relative -top-[1px]'
+                      } ${
+                        colIndex <= 1 ? 'ml-[16px]' : colIndex >= 5 ? 'mr-[16px]' : ''
+                      }`}></div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -12,7 +13,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AlertCircle } from 'lucide-react';
 
 function AppContent() {
-  const { currentScreen, toastMessage, setToastMessage } = useApp();
+  const { currentScreen, toastMessage } = useApp();
+  const [hasOpenedMap, setHasOpenedMap] = useState(false);
+
+  useEffect(() => {
+    if (currentScreen === 'xarita') {
+      setHasOpenedMap(true);
+    }
+  }, [currentScreen]);
 
   const renderActiveScreen = () => {
     switch (currentScreen) {
@@ -20,8 +28,6 @@ function AppContent() {
         return <CalendarScreen />;
       case 'xabarlar':
         return <MessagesScreen />;
-      case 'xarita':
-        return <MapViewScreen />;
       case 'chat':
         return <ChatScreen />;
       case 'qidiruv':
@@ -55,7 +61,14 @@ function AppContent() {
 
       {/* Main Content Layout */}
       <main className={`flex-1 w-full ${currentScreen === 'xarita' ? 'max-w-none px-0 md:px-0' : 'max-w-7xl mx-auto px-4 md:px-6'}`}>
-        {renderActiveScreen()}
+        {currentScreen !== 'xarita' && renderActiveScreen()}
+        
+        {/* Persistently mounted map to avoid Leaflet re-initialization overhead */}
+        {hasOpenedMap && (
+          <div className={currentScreen === 'xarita' ? 'block' : 'hidden'}>
+            <MapViewScreen />
+          </div>
+        )}
       </main>
 
       {/* Bottom Nav Bar (Mobile view only) */}
